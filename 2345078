@@ -1,0 +1,42 @@
+import pandas as pd
+import numpy as np
+
+# Load the dataset
+df = pd.read_csv('synthetic_customer_data.csv')
+
+# Phase 1: Data Loading and Initial Inspection
+print('Initial Data Preview:')
+print(df.head())
+print('\nData Types:')
+print(df.dtypes)
+print('\nShape:', df.shape)
+
+# Phase 2: Data Cleaning
+# Handling Missing Values
+df['Age'].fillna(df['Age'].median(), inplace=True)
+
+# Data Type Conversion
+df['JoinDate'] = pd.to_datetime(df['JoinDate'], errors='coerce')
+
+# Handling Duplicates
+df.drop_duplicates(subset=['CustomerID'], inplace=True)
+
+# Standardizing Categorical Data
+df['Name'] = df['Name'].str.title()
+df['Gender'] = df['Gender'].str.capitalize()
+df['Region'] = df['Region'].str.capitalize()
+
+# Outlier Handling
+q1, q3 = df['PurchaseAmount'].quantile([0.25, 0.75])
+iqr = q3 - q1
+upper_bound = q3 + 1.5 * iqr
+df['PurchaseAmount'] = np.where(df['PurchaseAmount'] > upper_bound, upper_bound, df['PurchaseAmount'])
+
+# Phase 3: Data Transformation
+# Feature Engineering
+df['AgeGroup'] = pd.cut(df['Age'], bins=[17, 30, 50, 70], labels=['Youth', 'Adult', 'Senior'])
+
+# Save the cleaned dataset
+df.to_csv('cleaned_customer_data.csv', index=False)
+
+print('\nData Cleaning and Transformation Complete!')
